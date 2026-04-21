@@ -92,11 +92,13 @@ if not IS_VERCEL:
             compression="gz",
             format=(
                 "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
-        "{level: <8} | "
-        "{name}:{function}:{line} — {message}"
-    ),
-    encoding="utf-8",
-)
+                "{level: <8} | "
+                "{name}:{function}:{line} — {message}"
+            ),
+            encoding="utf-8",
+        )
+    except Exception as e:
+        print(f"Disabled file logging: {e}")
 
 
 # ── Application Lifespan ──────────────────────────────────────────────────────
