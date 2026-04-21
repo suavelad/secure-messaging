@@ -55,13 +55,20 @@ from routers.websocket import router as ws_router
 settings = get_settings()
 
 # ── Logging Setup ─────────────────────────────────────────────────────────────
-# Create logs directory next to wherever uvicorn is launched from
-os.makedirs("logs", exist_ok=True)
+# In production/serverless (like Vercel), we cannot write to the local filesystem.
+# We only enable file logging if the directory is writable.
+IS_VERCEL = os.environ.get("VERCEL") == "1"
 
-# Remove loguru's default stderr handler so we can customise format
+if not IS_VERCEL:
+    try:
+        os.makedirs("logs", exist_ok=True)
+    except OSError:
+        pass # Probably read-only
+
+# Remove loguru's default stderr handler
 logger.remove()
 
-# Console sink — coloured, human-readable
+# Console sink — coloured, human-readable (Works on Vercel)
 logger.add(
     sys.stderr,
     level="DEBUG" if settings.debug else "INFO",
@@ -74,15 +81,17 @@ logger.add(
     colorize=True,
 )
 
-# File sink — daily rotation, 30-day retention, gzip compression
-logger.add(
-    "logs/backend_{time:YYYY-MM-DD}.log",
-    level="DEBUG",
-    rotation="00:00",       # New file at midnight
-    retention="30 days",    # Keep last 30 days
-    compression="gz",       # Compress rotated files
-    format=(
-        "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
+# File sink — ONLY enabled if not on Vercel
+if not IS_VERCEL:
+    try:
+        logger.add(
+            "logs/backend_{time:YYYY-MM-DD}.log",
+            level="DEBUG",
+            rotation="00:00",
+            retention="30 days",
+            compression="gz",
+            format=(
+                "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
         "{level: <8} | "
         "{name}:{function}:{line} — {message}"
     ),
