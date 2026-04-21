@@ -98,14 +98,15 @@ graph TD
     - If a WebSocket session is active on another device, the Backend closes it with code `1008 (Policy Violation)`.
 
 ### 3.2 End-to-End Key Exchange (E2EE)
-We utilize a **Static-Static X25519 Forward-Secrecy** preparation:
-1. **Pre-Key Registration**: During sign-up, the device generates:
-    - Identity Key: `Ed25519` (Long term identity)
-    - Pre-Key: `X25519` (Medium-term ephemeral)
-2. **Session established**:
+We utilize a **BIP-39 Mnemonic Seed** for deterministic key derivation:
+1. **Entropy Generation**: During sign-up, the device generates a 12-word mnemonic phrase.
+2. **Deterministic Derivation**: 
+    - `Seed = PBKDF2(Mnemonic, salt="mnemonic", iterations=2048)`.
+    - `Identity_Priv (Ed25519) = Seed[0:32]`.
+    - `PreKey_Priv (X25519)     = Seed[32:64]`.
+3. **Session established**:
     - Alice computes shared secret: `X25519(Alice_Priv, Bob_Pub)`.
     - Key Derivation: `HKDF-SHA256(secret, salt=null, info="secure_messaging_session_key")`.
-    - Result: A 256-bit AES key and a 96-bit base nonce.
 
 ### 3.3 The Encryption Pipeline (Send/Receive)
 **Sending Device:**
@@ -129,10 +130,16 @@ One of the most complex threats is the "Shared Device" scenario (e.g., Lending a
 1. **The Policy**: One device, one active user.
 2. **The Verification**: Upon successful login, the app fetches the public key registered to the account.
 3. **The Mismatch**: If `Local_Key != Server_Reported_Key`:
-    - This indicates a user transition (User B logging in on User A's phone).
-    - **Step 1**: The app purges all data from User A (Messages, Keys).
-    - **Step 2**: The app generates NEW keys for User B.
-    - **Step 3**: The app syncs the new keys to the server via a signed `PATCH /users/me/keys` request.
+    - This indicates a user transition or a potential device switch.
+    - **Step 1**: The app prompts the user to either **Restore History** via phrase or **Start Fresh**.
+    - **Step 2**: If 'Start Fresh', the app purges all data and generates NEW keys.
+    - **Step 3**: The app syncs the resulting public keys to the server.
+
+### 4.1 Zero-Knowledge Recovery & Device Migration
+Due to the **Zero-Knowledge** architecture, private keys are never stored on the server. Recovery is possible via client-side re-derivation:
+- **Migration via Phrase**: Entering the 12-word phrase on a new device allows the user to re-derive their identity and pre-keys, enabling full decryption of their existing message history.
+- **Start Fresh Consequence**: If a user logs in without their phrase, the system triggers a **Complete Wipe**. This generates new keys and updates the relay. Previous messages will correctly alert as "Signature Invalid" because they belong to an identity the user can no longer prove.
+- **Validation of Privacy**: This ensures that even if a server admin captures your account password, they **cannot** read your messages without also stealing your physical device or your 12-word recovery phrase.
 
 ---
 

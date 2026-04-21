@@ -29,6 +29,7 @@ dependencies:
 
   # ── Utilities ──────────────────────────────────────────────────────────────
   uuid: ^4.3.3      # UUID4 nonce generation for anti-replay headers
+  bip39: ^1.0.6     # 12-word mnemonic seed generation for recovery
 
 dev_dependencies:
   flutter_test:
