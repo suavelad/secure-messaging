@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Allows cleartext HTTP to your development machine's LAN IP.
+  This rule only applies to traffic heading to a private (RFC-1918) address,
+  so production HTTPS traffic is completely unaffected.
+  Remove or restrict this file before releasing to the Play Store.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Private LAN ranges — covers any 192.168.x.x / 10.x.x.x / 172.16-31.x.x address -->
+        <domain includeSubdomains="false">192.168.0.0</domain>
+        <domain includeSubdomains="false">10.0.0.0</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
