@@ -169,4 +169,84 @@ To achieve true zero-knowledge properties, we minimize data residue:
     - The vault itself is encrypted with a device-local `AES-256` key stored in the hardware Keystore.
 
 ---
-*Implementation Reference v3.8.1 · SecureMessenger Hardened Standard*
+
+## 7. Feature-Specific Implementation Flows
+
+### 7.1 Secure Registration & Hardware Bonding
+**Goal**: Anchor a new physical device to a unique user identity.
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as Mobile Client
+    participant S as Backend Relay
+    U->>C: Enter Credentials
+    C->>C: Generate 12-Word Mnemonic (BIP-39)
+    C->>C: Derive Ed25519 & X25519 keys
+    C->>C: Extract hardware device_id
+    Note over C: Entropy -> Seed -> Keypair
+    C->>S: POST /auth/register (keys, did, pwd)
+    S->>S: Argon2id Hash Password
+    S->>S: Anchor Keys to User + device_id
+    S-->>C: 201 Created + JWT (sid)
+    C-->>U: Show Recovery Phrase (SAVE IT!)
+```
+
+### 7.2 Detection of Device Switch (The "Restoration" Flow)
+**Goal**: Prevent unauthorized devices from accessing an account while allowing authorized migrations.
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as New Phone
+    participant S as Backend Relay
+    participant O as Old Phone
+    U->>C: Login (Username/Password)
+    C->>S: POST /auth/login (did_new)
+    S->>S: Revoke Old Phone's Tokens
+    S->>O: WS Close (Code 1008)
+    S-->>C: 200 OK + JWT + IdentityKey_Pub
+    C->>C: Compare LocalKey vs ServerKey
+    Note over C: Mismatch Detected!
+    C-->>U: Security Restoration Challenge
+    U->>C: Enter 12-Word Recovery Phrase
+    C->>C: Re-derive Ed25519 & X25519
+    Note over C: Keys now match IdentityKey_Pub
+    C-->>U: Success! History Access Restored
+```
+
+### 7.3 End-to-End Encrypted Messaging (P2P Path)
+**Goal**: Ensure confidentiality, integrity, and authenticity for every message.
+
+```mermaid
+sequenceDiagram
+    participant A as Alice (Sender)
+    participant S as Backend Relay
+    participant B as Bob (Receiver)
+    A->>S: GET /users/bob/keys
+    S-->>A: Bob's Public PreKey (X25519)
+    A->>A: ECDH(Alice_Priv, Bob_Pub) -> SessionKey
+    A->>A: AES-256-GCM Encrypt Plaintext
+    A->>A: Ed25519 Sign (Ciphertext + Metadata)
+    A->>S: POST /messages (Encrypted Bundle)
+    Note over S: Verify Alice's JWT + sid + did
+    S->>B: WebSocket Notification
+    B->>S: GET /messages (afterId)
+    S-->>B: Encrypted Bundle + Alice_IdentityKey_Pub
+    B->>B: Verify Alice's Signature
+    B->>B: ECDH(Bob_Priv, Alice_Pub) -> SessionKey
+    B->>B: AES-256-GCM Decrypt Plaintext
+    B->>S: DELETE /messages/{id} (Forward Deletion)
+```
+
+### 7.4 Multi-Device "Takeover" Protection (Force Logout)
+**Goal**: Ensure strict single-device exclusivity.
+- **Mechanism**:
+    1. When User A logs into **Device 2**, the server immediately revokes **Device 1's** refresh tokens.
+    2. The server locates any active WebSocket connection for User A on Device 1.
+    3. The server sends a `CLOSE` frame with code `1008 (Policy Violation)`.
+    4. Device 1 receives the code, triggers an internal `ApiClient` broadcast.
+    5. **Finality**: Device 1 wipes its current session tokens and redirects to the login screen with a "Session Active on Another Device" security notice.
+
+---
+*Implementation Reference v4.0.0 · SecureMessenger Hardened Standard*
