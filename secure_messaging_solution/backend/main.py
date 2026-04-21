@@ -44,13 +44,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from backend.config import get_settings
-from backend.database import create_tables
-from backend.middleware.anti_replay import anti_replay_middleware
-from backend.routers.auth import router as auth_router
-from backend.routers.messages import router as messages_router
-from backend.routers.users import router as users_router
-from backend.routers.websocket import router as ws_router
+from config import get_settings
+from database import create_tables
+from middleware.anti_replay import anti_replay_middleware
+from routers.auth import router as auth_router
+from routers.messages import router as messages_router
+from routers.users import router as users_router
+from routers.websocket import router as ws_router
 
 settings = get_settings()
 

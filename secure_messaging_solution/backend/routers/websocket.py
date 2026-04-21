@@ -27,9 +27,9 @@ from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from loguru import logger
 from sqlalchemy.orm import Session
 
-from backend.auth import verify_access_token
-from backend.database import DBUser, SessionLocal
-from backend.ws_manager import manager
+from auth import verify_access_token
+from database import DBUser, SessionLocal
+from ws_manager import manager
 
 router = APIRouter(tags=["WebSocket"])
 

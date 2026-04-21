@@ -10,10 +10,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from loguru import logger
 from sqlalchemy.orm import Session
 
-from backend.database import DBUser, get_db
-from backend.dependencies import get_current_user
-from backend.schemas import UserListItem, UserPublicKeys
-from backend.ws_manager import manager
+from database import DBUser, get_db
+from dependencies import get_current_user
+from schemas import UserListItem, UserPublicKeys
+from ws_manager import manager
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

@@ -23,7 +23,7 @@ from jose import JWTError, jwt
 from loguru import logger
 from passlib.context import CryptContext
 
-from backend.config import get_settings
+from config import get_settings
 
 settings = get_settings()
 

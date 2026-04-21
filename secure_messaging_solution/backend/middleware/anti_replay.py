@@ -31,7 +31,7 @@ from typing import Dict
 from fastapi import HTTPException, Request, status
 from loguru import logger
 
-from backend.config import get_settings
+from config import get_settings
 
 settings = get_settings()
 

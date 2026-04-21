@@ -27,11 +27,11 @@ from loguru import logger
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from backend.crypto import verify_message_signature
-from backend.database import DBMessage, DBUser, get_db
-from backend.dependencies import get_current_user
-from backend.schemas import AckResponse, MessageResponse, SendMessageRequest
-from backend.ws_manager import manager
+from crypto import verify_message_signature
+from database import DBMessage, DBUser, get_db
+from dependencies import get_current_user
+from schemas import AckResponse, MessageResponse, SendMessageRequest
+from ws_manager import manager
 
 router = APIRouter(prefix="/messages", tags=["Messages"])
 

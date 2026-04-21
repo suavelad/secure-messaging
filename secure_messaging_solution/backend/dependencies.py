@@ -9,8 +9,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from loguru import logger
 from sqlalchemy.orm import Session
 
-from backend.auth import verify_access_token
-from backend.database import DBUser, get_db
+from auth import verify_access_token
+from database import DBUser, get_db
 
 # Parses "Authorization: Bearer <token>" from incoming requests
 _bearer = HTTPBearer()
