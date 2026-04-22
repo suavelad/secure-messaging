@@ -30,10 +30,17 @@ settings = get_settings()
 
 # ── Engine ────────────────────────────────────────────────────────────────────
 
+# Select database URL based on ENV (local uses sqlite, dev uses postgres)
+_db_url = settings.database_url
+if settings.env.lower() == "dev":
+    if not settings.postgres_url:
+        raise ValueError("ENV=dev set but POSTGRES_URL is missing in configuration.")
+    _db_url = settings.postgres_url
+
 engine = create_engine(
-    settings.database_url,
+    _db_url,
     # SQLite requires this for multi-threaded use (FastAPI async event loop)
-    connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {},
+    connect_args={"check_same_thread": False} if "sqlite" in _db_url else {},
     echo=settings.debug,
 )
 

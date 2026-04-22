@@ -15,6 +15,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # ── Application ───────────────────────────────────────────────────────────
     app_name: str = "SecureMessenger API"
+    env: str = "local"
     debug: bool = False
 
     # ── Security / JWT ────────────────────────────────────────────────────────
@@ -40,6 +41,7 @@ class Settings(BaseSettings):
 
     # ── Database ──────────────────────────────────────────────────────────────
     database_url: str = "sqlite:///./secure_messenger.db"
+    postgres_url: str = ""
 
     # ── CORS ──────────────────────────────────────────────────────────────────
     # Restrict to your mobile app origin in production (e.g. ["https://myapp.com"])
