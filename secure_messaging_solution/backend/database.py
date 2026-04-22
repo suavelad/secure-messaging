@@ -45,7 +45,7 @@ engine = create_engine(
 )
 
 # Enable SQLite WAL mode, foreign-key enforcement, and NORMAL sync for perf
-if "sqlite" in settings.database_url:
+if "sqlite" in _db_url:
     @event.listens_for(engine, "connect")
     def _sqlite_pragmas(dbapi_conn, _record):
         cur = dbapi_conn.cursor()
